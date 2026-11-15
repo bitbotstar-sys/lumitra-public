@@ -21,6 +21,10 @@ for(const [name,html] of [['index',home],['global',global],['guide',guide],['fam
  assert(!/https?:\/\/[^\s"'<>]*\.ts\.net(?::\d+)?/i.test(html),name+' contains a private Tailscale URL');
 }
 assert(global.includes('lumitra-plan-localizer'),'localized planner script missing');
+assert(global.includes(String.raw`/^(\d+)名(以上)?$/`),'traveler count regex must match digits');
+assert(global.includes(String.raw`/^(\d+)万円(以内|以上)$/`),'yen budget regex must match digits');
+assert(!global.includes(String.raw`/^(\\d+)名(以上)?$/`),'traveler count regex double-escaped');
+assert(!global.includes(String.raw`/^(\\d+)万円(以内|以上)$/`),'yen budget regex double-escaped');
 assert(global.includes('LUMITRA_I18N_AUDIT'),'browser untranslated-content audit missing');
 for(const lang of locales){assert(guideGlobal.includes('value="'+lang+'"'),'guide missing '+lang);}
 
