@@ -12,7 +12,7 @@ assert(global.includes('LUMITRA_EXPORT_I18N_AUDIT'),'audit export missing');
 assert(global.includes('characterData:true'),'dynamic content translation/audit missing');
 assert(guide.includes('<html'),'Japan guide missing');
 for(const [name,html] of [['index',home],['global',global],['guide',guide]]){
- const scripts=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)];
+ const scripts=[...html.matchAll(/<script[^>]*>(.*?)<\/script>/gs)];
  for(let i=0;i<scripts.length;i++){try{new (require('node:vm').Script)(scripts[i][1],{filename:name+'-inline-'+i+'.js'});}catch(e){throw new Error(name+' script '+i+': '+e.message);}}
  console.log('PASS '+name+': '+scripts.length+' inline scripts parse');
 }
