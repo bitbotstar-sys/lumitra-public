@@ -17,7 +17,11 @@ assert(family.includes('location.replace(target)'),'family redirect missing');
 assert(global.includes('LUMITRA_LOCALIZE_PLAN'),'dynamic plan localizer missing');
 assert(home.includes('japan-guide-global.html'),'home guide link missing');
 assert(global.includes('japan-guide-global.html'),'global guide link missing');
-assert(!home.includes('tailc580d8.ts.net')&&!global.includes('tailc580d8.ts.net'),'private Tailscale URL in public pages');
+for(const [name,html] of [['index',home],['global',global],['guide',guide],['family',family],['guide-global',guideGlobal]]) {
+ assert(!/https?:\/\/[^\s"'<>]*\.ts\.net(?::\d+)?/i.test(html),name+' contains a private Tailscale URL');
+}
+assert(global.includes('lumitra-plan-localizer'),'localized planner script missing');
+assert(global.includes('LUMITRA_I18N_AUDIT'),'browser untranslated-content audit missing');
 for(const lang of locales){assert(guideGlobal.includes('value="'+lang+'"'),'guide missing '+lang);}
 
 for(const [name,html] of [['index',home],['global',global],['guide',guide],['family',family],['guide-global',guideGlobal]]){
