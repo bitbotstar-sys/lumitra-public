@@ -2,6 +2,7 @@
 // Run: node tests/i18n-regression.cjs
 const fs=require('node:fs');const assert=require('node:assert/strict');
 const home=fs.readFileSync('index.html','utf8');const global=fs.readFileSync('global.html','utf8');const guide=fs.readFileSync('japan-guide.html','utf8');
+const family=fs.readFileSync('family-japan.html','utf8');const guideGlobal=fs.readFileSync('japan-guide-global.html','utf8');
 const locales=['ja','en','zh','zh-TW','ko','fr','es','th'];
 for(const lang of locales){assert(home.includes('value="'+lang+'"'),'homepage missing '+lang);assert(global.includes('value="'+lang+'"'),'global missing '+lang);}
 assert(home.includes('new URLSearchParams(location.search).get("lang")'),'homepage must respect explicit language');
@@ -11,7 +12,15 @@ assert(global.includes('LUMITRA_AUDIT_NOW'),'runtime audit missing');
 assert(global.includes('LUMITRA_EXPORT_I18N_AUDIT'),'audit export missing');
 assert(global.includes('characterData:true'),'dynamic content translation/audit missing');
 assert(guide.includes('<html'),'Japan guide missing');
-for(const [name,html] of [['index',home],['global',global],['guide',guide]]){
+assert(family.includes('lumitra-family-restore'),'family page must redirect to full planner');
+assert(family.includes('location.replace(target)'),'family redirect missing');
+assert(global.includes('LUMITRA_LOCALIZE_PLAN'),'dynamic plan localizer missing');
+assert(home.includes('japan-guide-global.html'),'home guide link missing');
+assert(global.includes('japan-guide-global.html'),'global guide link missing');
+assert(!home.includes('tailc580d8.ts.net')&&!global.includes('tailc580d8.ts.net'),'private Tailscale URL in public pages');
+for(const lang of locales){assert(guideGlobal.includes('value="'+lang+'"'),'guide missing '+lang);}
+
+for(const [name,html] of [['index',home],['global',global],['guide',guide],['family',family],['guide-global',guideGlobal]]){
  const scripts=[...html.matchAll(/<script[^>]*>(.*?)<\/script>/gs)];
  for(let i=0;i<scripts.length;i++){try{new (require('node:vm').Script)(scripts[i][1],{filename:name+'-inline-'+i+'.js'});}catch(e){throw new Error(name+' script '+i+': '+e.message);}}
  console.log('PASS '+name+': '+scripts.length+' inline scripts parse');
