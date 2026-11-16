@@ -33,6 +33,25 @@ for(const [name,html] of [['index',home],['global',global],['guide',guide],['fam
  for(let i=0;i<scripts.length;i++){try{new (require('node:vm').Script)(scripts[i][1],{filename:name+'-inline-'+i+'.js'});}catch(e){throw new Error(name+' script '+i+': '+e.message);}}
  console.log('PASS '+name+': '+scripts.length+' inline scripts parse');
 }
+
+const vm=require('node:vm');
+const localizer=global.match(/<script id="lumitra-plan-localizer">([\\s\\S]*?)<\\/script>/);
+assert(localizer,'localizer script missing');
+for(const lang of locales.filter(x=>x!=='ja')){
+ const nodes={};
+ const el=id=>nodes[id]||(nodes[id]={textContent:'',children:[],replaceChildren(){this.children=[];},append(...v){this.children.push(...v);}});
+ const document={getElementById:el,createElement:tag=>({tag,textContent:'',children:[],append(...v){this.children.push(...v);}})};
+ const context={window:{},document,location:{search:'?lang='+lang},URLSearchParams,localStorage:{getItem:()=>null}};
+ vm.runInNewContext(localizer[1],context,{timeout:1500});
+ const plan=context.window.LUMITRA_LOCALIZE_PLAN({area:'長野',theme:'温泉',days:'1泊2日',origin:'Tokyo',date:'2026-12-01',transport:'車',party:'2名',budget:'7万円以内',season:'秋',original:'original Japanese'});
+ assert(plan&&plan!=='original Japanese','planner did not localize '+lang);
+ assert(!/[\\u3040-\\u30ff]/.test(plan),'Japanese kana remained in '+lang+' generated plan: '+plan);
+ assert(!plan.includes('2名')&&!plan.includes('7万円'),'traveler or budget not localized '+lang);
+ assert(el('trip-result-title').textContent,'result title missing '+lang);
+ assert(el('trip-itinerary').children.length>0,'itinerary missing '+lang);
+}
+console.log('PASS generated itinerary localization for seven languages');
+
 console.log('PASS locale selectors: '+locales.join(', '));
 console.log('PASS locale persistence, Japanese return and runtime audit hooks');
 console.log('NOTE: static tests do not establish translated content completeness or browser behavior');
